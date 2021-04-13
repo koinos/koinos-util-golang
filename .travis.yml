@@ -1,0 +1,25 @@
+language: go
+
+go:
+  - 1.x
+
+addons:
+  apt:
+    packages:
+      - ruby-full
+  update: true
+
+jobs:
+  include:
+    - os: linux
+      dist: focal
+
+install:
+  - source ci/install.sh
+
+script:
+  - ci/build.sh && ci/test.sh
+
+after_success:
+  - ci/after_success.sh
+ 
