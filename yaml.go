@@ -10,8 +10,9 @@ import (
 
 // YamlConfig represents the koinos yaml application config values
 type YamlConfig struct {
-	Global map[string]interface{} `yaml:"global,omitempty"`
-	P2P    map[string]interface{} `yaml:"p2p,omitempty"`
+	Global     map[string]interface{} `yaml:"global,omitempty"`
+	P2P        map[string]interface{} `yaml:"p2p,omitempty"`
+	BlockStore map[string]interface{} `yaml:"block-store,omitempty"`
 }
 
 // GetStringOption fetches a string cli value, respecting values in a given config
@@ -71,6 +72,7 @@ func InitYamlConfig(baseDir string) *YamlConfig {
 	} else {
 		yamlConfig.Global = make(map[string]interface{})
 		yamlConfig.P2P = make(map[string]interface{})
+		yamlConfig.BlockStore = make(map[string]interface{})
 	}
 
 	return &yamlConfig
