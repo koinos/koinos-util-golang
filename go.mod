@@ -1,4 +1,4 @@
-module github.com/koinos/koinos-p2p
+module github.com/koinos/koinos-util-golang
 
 go 1.15
 
