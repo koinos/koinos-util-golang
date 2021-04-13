@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"os"
+	"path"
+	"path/filepath"
 
 	types "github.com/koinos/koinos-types-golang"
 )
@@ -60,4 +63,30 @@ func GenerateBase58ID(length int) string {
 	}
 
 	return string(seed)
+}
+
+// EnsureDir checks for existence of a directory and recursively creates it if needed
+func EnsureDir(dir string) {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.MkdirAll(dir, os.ModePerm)
+	}
+}
+
+// GetAppDir forms the application data directory from the given input
+func GetAppDir(baseDir string, appName string) string {
+	return path.Join(baseDir, appName)
+}
+
+// InitBaseDir creates the base directory
+func InitBaseDir(baseDir string) string {
+	if !filepath.IsAbs(baseDir) {
+		homedir, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
+		}
+		baseDir = filepath.Join(homedir, baseDir)
+	}
+	EnsureDir(baseDir)
+
+	return baseDir
 }
