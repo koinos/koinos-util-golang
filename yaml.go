@@ -13,6 +13,7 @@ type YamlConfig struct {
 	Global     map[string]interface{} `yaml:"global,omitempty"`
 	P2P        map[string]interface{} `yaml:"p2p,omitempty"`
 	BlockStore map[string]interface{} `yaml:"block-store,omitempty"`
+	JSONRPC    map[string]interface{} `yaml:"jsonrpc,omitempty"`
 }
 
 // GetStringOption fetches a string cli value, respecting values in a given config
