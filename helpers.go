@@ -52,6 +52,23 @@ func BlockTopologyCmpString(topo *BlockTopologyCmp) string {
 	return fmt.Sprintf("Height: %d ID: %s Prev: %s", topo.Height, string(id), string(prevID))
 }
 
+// BlockTopologyString returns a string representation of the BlockTopologyCmp
+func BlockTopologyString(topo *types.BlockTopology) string {
+	id, err := json.Marshal(topo.ID)
+	if err != nil {
+		id = []byte("ERR")
+	} else {
+		id = id[1 : len(id)-1]
+	}
+	prevID, err := json.Marshal(topo.Previous)
+	if err != nil {
+		prevID = []byte("ERR")
+	} else {
+		prevID = prevID[1 : len(prevID)-1]
+	}
+	return fmt.Sprintf("Height: %d ID: %s Prev: %s", topo.Height, string(id), string(prevID))
+}
+
 // GenerateBase58ID generates a random seed string
 func GenerateBase58ID(length int) string {
 	// Use the base-58 character set
