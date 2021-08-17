@@ -5,4 +5,4 @@ set -x
 
 go get ./...
 mkdir -p build
-go build -o build/koinos-mq-golang *.go
+go build -o build/koinos-util-golang *.go
