@@ -1,7 +1,7 @@
 package util
 
 import (
-	types "github.com/koinos/koinos-types-golang"
+	"github.com/koinos/koinos-proto-golang/koinos"
 )
 
 //
@@ -30,46 +30,41 @@ import (
 
 // MultihashCmp is a comparable version of Koinos Types Multihash
 type MultihashCmp struct {
-	ID     types.UInt64
-	Digest string
+	Data string
 }
 
 // BlockTopologyCmp is a comparable version of Koinos Types Block Topology
 type BlockTopologyCmp struct {
 	ID       MultihashCmp
-	Height   types.BlockHeightType
+	Height   uint64
 	Previous MultihashCmp
 }
 
 // MultihashToCmp returns a MultihashCmp object for the given Multihash
-func MultihashToCmp(h types.Multihash) MultihashCmp {
+func MultihashToCmp(h []byte) MultihashCmp {
 	return MultihashCmp{
-		ID:     h.ID,
-		Digest: string(h.Digest),
+		Data: string(h),
 	}
 }
 
 // MultihashFromCmp returns a Multihash object for the given MultihashCmp
-func MultihashFromCmp(h MultihashCmp) types.Multihash {
-	return types.Multihash{
-		ID:     h.ID,
-		Digest: []byte(h.Digest),
-	}
+func MultihashFromCmp(h MultihashCmp) []byte {
+	return []byte(h.Data)
 }
 
 // BlockTopologyToCmp returns a BlockTopologyCmp object for the given BlockTopology
-func BlockTopologyToCmp(topo types.BlockTopology) BlockTopologyCmp {
+func BlockTopologyToCmp(topo koinos.BlockTopology) BlockTopologyCmp {
 	return BlockTopologyCmp{
-		ID:       MultihashToCmp(topo.ID),
+		ID:       MultihashToCmp(topo.Id),
 		Height:   topo.Height,
 		Previous: MultihashToCmp(topo.Previous),
 	}
 }
 
 // BlockTopologyFromCmp returns a BlockTopology object for the given BlockTopologyCmp
-func BlockTopologyFromCmp(topo BlockTopologyCmp) types.BlockTopology {
-	return types.BlockTopology{
-		ID:       MultihashFromCmp(topo.ID),
+func BlockTopologyFromCmp(topo BlockTopologyCmp) koinos.BlockTopology {
+	return koinos.BlockTopology{
+		Id:       MultihashFromCmp(topo.ID),
 		Height:   topo.Height,
 		Previous: MultihashFromCmp(topo.Previous),
 	}

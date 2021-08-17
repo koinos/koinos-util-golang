@@ -9,12 +9,13 @@ import (
 	"path/filepath"
 	"runtime"
 
-	types "github.com/koinos/koinos-types-golang"
+	"github.com/koinos/koinos-proto-golang/koinos"
+	"github.com/koinos/koinos-proto-golang/koinos/protocol"
 )
 
 // BlockString returns a string containing the given block's height and ID
-func BlockString(block *types.Block) string {
-	id, err := json.Marshal(block.ID)
+func BlockString(block *protocol.Block) string {
+	id, err := json.Marshal(block.Id)
 	if err != nil {
 		id = []byte("ERR")
 	} else {
@@ -30,8 +31,8 @@ func BlockString(block *types.Block) string {
 }
 
 // TransactionString returns a string containing the given transaction's ID
-func TransactionString(transaction *types.Transaction) string {
-	id, _ := json.Marshal(transaction.ID)
+func TransactionString(transaction *protocol.Transaction) string {
+	id, _ := json.Marshal(transaction.Id)
 	return fmt.Sprintf("ID: %s", string(id))
 }
 
@@ -53,8 +54,8 @@ func BlockTopologyCmpString(topo *BlockTopologyCmp) string {
 }
 
 // BlockTopologyString returns a string representation of the BlockTopologyCmp
-func BlockTopologyString(topo *types.BlockTopology) string {
-	id, err := json.Marshal(topo.ID)
+func BlockTopologyString(topo *koinos.BlockTopology) string {
+	id, err := json.Marshal(topo.Id)
 	if err != nil {
 		id = []byte("ERR")
 	} else {
