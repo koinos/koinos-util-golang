@@ -1,7 +1,7 @@
 package util
 
 import (
-	"encoding/json"
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"os"
@@ -13,61 +13,36 @@ import (
 	"github.com/koinos/koinos-proto-golang/koinos/protocol"
 )
 
+// MultihashString returns a hex string representation of the given multihash
+func MultihashString(hash []byte) string {
+	return "0x" + hex.EncodeToString(hash)
+}
+
 // BlockString returns a string containing the given block's height and ID
 func BlockString(block *protocol.Block) string {
-	id, err := json.Marshal(block.Id)
-	if err != nil {
-		id = []byte("ERR")
-	} else {
-		id = id[1 : len(id)-1]
-	}
-	prevID, err := json.Marshal(block.Header.Previous)
-	if err != nil {
-		prevID = []byte("ERR")
-	} else {
-		prevID = prevID[1 : len(prevID)-1]
-	}
-	return fmt.Sprintf("Height: %d ID: %s Prev: %s", block.Header.Height, string(id), string(prevID))
+	id := MultihashString(block.Id)
+	prevID := MultihashString(block.Header.Previous)
+	return fmt.Sprintf("Height: %d ID: %s Prev: %s", block.Header.Height, id, prevID)
 }
 
 // TransactionString returns a string containing the given transaction's ID
 func TransactionString(transaction *protocol.Transaction) string {
-	id, _ := json.Marshal(transaction.Id)
+	id := MultihashString(transaction.Id)
 	return fmt.Sprintf("ID: %s", string(id))
 }
 
 // BlockTopologyCmpString returns a string representation of the BlockTopologyCmp
 func BlockTopologyCmpString(topo *BlockTopologyCmp) string {
-	id, err := json.Marshal(MultihashFromCmp(topo.ID))
-	if err != nil {
-		id = []byte("ERR")
-	} else {
-		id = id[1 : len(id)-1]
-	}
-	prevID, err := json.Marshal(MultihashFromCmp(topo.Previous))
-	if err != nil {
-		prevID = []byte("ERR")
-	} else {
-		prevID = prevID[1 : len(prevID)-1]
-	}
-	return fmt.Sprintf("Height: %d ID: %s Prev: %s", topo.Height, string(id), string(prevID))
+	id := MultihashString(MultihashFromCmp(topo.ID))
+	prevID := MultihashString(MultihashFromCmp(topo.Previous))
+	return fmt.Sprintf("Height: %d ID: %s Prev: %s", topo.Height, id, prevID)
 }
 
 // BlockTopologyString returns a string representation of the BlockTopologyCmp
 func BlockTopologyString(topo *koinos.BlockTopology) string {
-	id, err := json.Marshal(topo.Id)
-	if err != nil {
-		id = []byte("ERR")
-	} else {
-		id = id[1 : len(id)-1]
-	}
-	prevID, err := json.Marshal(topo.Previous)
-	if err != nil {
-		prevID = []byte("ERR")
-	} else {
-		prevID = prevID[1 : len(prevID)-1]
-	}
-	return fmt.Sprintf("Height: %d ID: %s Prev: %s", topo.Height, string(id), string(prevID))
+	id := MultihashString(topo.Id)
+	prevID := MultihashString(topo.Previous)
+	return fmt.Sprintf("Height: %d ID: %s Prev: %s", topo.Height, id, prevID)
 }
 
 // GenerateBase58ID generates a random seed string
