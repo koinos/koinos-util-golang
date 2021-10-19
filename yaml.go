@@ -53,6 +53,23 @@ func GetStringSliceOption(key string, cliArg []string, configs ...map[string]int
 	return stringSlice
 }
 
+// GetBoolOption fetches a bool cli value, respecting values in a given config
+func GetBoolOption(key string, defaultValue bool, cliArg bool, configs ...map[string]interface{}) bool {
+	if cliArg != defaultValue {
+		return cliArg
+	}
+
+	for _, config := range configs {
+		if v, ok := config[key]; ok {
+			if option, ok := v.(bool); ok && option != defaultValue {
+				return option
+			}
+		}
+	}
+
+	return defaultValue
+}
+
 // InitYamlConfig initializes a yaml config
 func InitYamlConfig(baseDir string) *YamlConfig {
 	yamlConfigPath := filepath.Join(baseDir, "config.yml")
