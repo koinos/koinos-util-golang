@@ -10,11 +10,12 @@ import (
 
 // YamlConfig represents the koinos yaml application config values
 type YamlConfig struct {
-	Global           map[string]interface{} `yaml:"global,omitempty"`
-	P2P              map[string]interface{} `yaml:"p2p,omitempty"`
-	BlockStore       map[string]interface{} `yaml:"block_store,omitempty"`
-	JSONRPC          map[string]interface{} `yaml:"jsonrpc,omitempty"`
-	TransactionStore map[string]interface{} `yaml:"transaction_store,omitempty"`
+	Global            map[string]interface{} `yaml:"global,omitempty"`
+	P2P               map[string]interface{} `yaml:"p2p,omitempty"`
+	BlockStore        map[string]interface{} `yaml:"block_store,omitempty"`
+	JSONRPC           map[string]interface{} `yaml:"jsonrpc,omitempty"`
+	TransactionStore  map[string]interface{} `yaml:"transaction_store,omitempty"`
+	ContractMetaStore map[string]interface{} `yaml:"contract_meta_store,omitempty"`
 }
 
 // GetStringOption fetches a string cli value, respecting values in a given config
