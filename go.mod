@@ -8,8 +8,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.8
 	github.com/koinos/koinos-proto-golang v0.2.1-0.20211223221426-6213a3ada193
 	github.com/multiformats/go-multihash v0.1.0
-	github.com/stretchr/testify v1.7.0 // indirect
-	github.com/ybbus/jsonrpc v2.1.2+incompatible // indirect
+	github.com/stretchr/testify v1.7.0
 	github.com/ybbus/jsonrpc/v2 v2.1.6
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0

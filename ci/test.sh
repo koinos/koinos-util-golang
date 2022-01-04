@@ -3,7 +3,7 @@
 set -e
 set -x
 
-go test -v github.com/koinos/koinos-util -coverprofile=./build/util.out -coverpkg=./...
+go test -coverprofile=./build/util.out ./...
 
 gcov2lcov -infile=./build/util.out -outfile=./build/util.info
 
