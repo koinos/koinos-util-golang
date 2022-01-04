@@ -1,4 +1,4 @@
-package kjsonrpc
+package rpc
 
 import (
 	"crypto/sha256"
