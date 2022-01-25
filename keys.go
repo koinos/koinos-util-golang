@@ -15,6 +15,8 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
+const compressMagic byte = 0x01
+
 // KoinosKey represents a set of keys
 type KoinosKey struct {
 	PrivateKey *ecdsa.PrivateKey
@@ -67,8 +69,6 @@ func (keys *KoinosKey) PublicBytes() []byte {
 func (keys *KoinosKey) PrivateBytes() []byte {
 	return crypto.FromECDSA(keys.PrivateKey)
 }
-
-const compressMagic byte = 0x01
 
 // EncodeWIF encodes a private key into a WIF format string
 func EncodeWIF(privKey []byte, compress bool, netID byte) string {
