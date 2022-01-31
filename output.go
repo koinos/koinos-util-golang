@@ -56,3 +56,13 @@ func HashMessage(message proto.Message) ([]byte, error) {
 
 	return mh, nil
 }
+
+// DisplayAddress takes address bytes and returns a properly formatted human-readable string
+func DisplayAddress(addressBytes []byte) string {
+	return fmt.Sprintf("0x%s", hex.EncodeToString(addressBytes))
+}
+
+// HexStringToBytes decodes a hex string to a byte slice
+func HexStringToBytes(s string) ([]byte, error) {
+	return hex.DecodeString(s[2:])
+}
