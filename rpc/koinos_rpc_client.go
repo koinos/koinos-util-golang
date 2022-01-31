@@ -23,6 +23,7 @@ const (
 	GetAccountNonceCall   = "chain.get_account_nonce"
 	GetAccountRcCall      = "chain.get_account_rc"
 	SubmitTransactionCall = "chain.submit_transaction"
+	GetChainIDCall        = "chain.get_chain_id"
 	GetContractMetaCall   = "contract_meta_store.get_contract_meta"
 )
 
@@ -191,8 +192,13 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 		return nil, err
 	}
 
+	chainID, err := c.GetChainID()
+	if err != nil {
+		return nil, err
+	}
+
 	// Create the header
-	header := protocol.TransactionHeader{RcLimit: rcLimit, Nonce: nonce, OperationMerkleRoot: merkleRoot}
+	header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonce, OperationMerkleRoot: merkleRoot}
 	headerBytes, err := canonical.Marshal(&header)
 	if err != nil {
 		return nil, err
@@ -228,4 +234,19 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 	}
 
 	return transaction.Id, nil
+}
+
+// GetContractMeta gets the chain id
+func (c *KoinosRPCClient) GetChainID() ([]byte, error) {
+	// Build the contract request
+	params := chain.GetChainIdRequest{}
+
+	// Make the rpc call
+	var cResp chain.GetChainIdResponse
+	err := c.Call(GetChainIDCall, &params, &cResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return cResp.ChainId, nil
 }
