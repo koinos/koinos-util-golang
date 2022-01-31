@@ -198,7 +198,7 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 	}
 
 	// Create the header
-	header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonce, OperationMerkleRoot: merkleRoot}
+	header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonce, OperationMerkleRoot: merkleRoot, Payer: address}
 	headerBytes, err := canonical.Marshal(&header)
 	if err != nil {
 		return nil, err
