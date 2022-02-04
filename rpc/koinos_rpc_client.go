@@ -128,7 +128,7 @@ func (c *KoinosRPCClient) GetAccountRc(address []byte) (uint64, error) {
 }
 
 // GetAccountNonce gets the nonce of a given account
-func (c *KoinosRPCClient) GetAccountNonce(address []byte) (uint64, error) {
+func (c *KoinosRPCClient) GetAccountNonce(address []byte) ([]byte, error) {
 	// Build the contract request
 	params := chain.GetAccountNonceRequest{
 		Account: address,
@@ -138,7 +138,7 @@ func (c *KoinosRPCClient) GetAccountNonce(address []byte) (uint64, error) {
 	var cResp chain.GetAccountNonceResponse
 	err := c.Call(GetAccountNonceCall, &params, &cResp)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	return cResp.Nonce, nil
