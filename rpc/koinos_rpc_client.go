@@ -236,7 +236,7 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 	return transaction.Id, nil
 }
 
-// GetContractMeta gets the chain id
+// GetChainID gets the chain id
 func (c *KoinosRPCClient) GetChainID() ([]byte, error) {
 	// Build the contract request
 	params := chain.GetChainIdRequest{}
