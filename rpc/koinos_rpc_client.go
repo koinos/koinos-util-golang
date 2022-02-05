@@ -128,7 +128,7 @@ func (c *KoinosRPCClient) GetAccountRc(address []byte) (uint64, error) {
 }
 
 // GetAccountNonce gets the nonce of a given account
-func (c *KoinosRPCClient) GetAccountNonce(address []byte) ([]byte, error) {
+func (c *KoinosRPCClient) GetAccountNonce(address []byte) (uint64, error) {
 	// Build the contract request
 	params := chain.GetAccountNonceRequest{
 		Account: address,
@@ -138,10 +138,15 @@ func (c *KoinosRPCClient) GetAccountNonce(address []byte) ([]byte, error) {
 	var cResp chain.GetAccountNonceResponse
 	err := c.Call(GetAccountNonceCall, &params, &cResp)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return cResp.Nonce, nil
+	nonce, err := util.NonceBytesToUInt64(cResp.Nonce)
+	if err != nil {
+		return 0, err
+	}
+
+	return nonce, nil
 }
 
 // GetContractMeta gets the metadata of a given contract
@@ -172,6 +177,12 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 		return nil, err
 	}
 
+	// Convert none+1 to bytes
+	nonceBytes, err := util.UInt64ToNonceBytes(nonce + 1)
+	if err != nil {
+		return nil, err
+	}
+
 	rcLimit, err := c.GetAccountRc(address)
 	if err != nil {
 		return nil, err
@@ -198,7 +209,7 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 	}
 
 	// Create the header
-	header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonce, OperationMerkleRoot: merkleRoot, Payer: address}
+	header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: address}
 	headerBytes, err := canonical.Marshal(&header)
 	if err != nil {
 		return nil, err

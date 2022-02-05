@@ -22,3 +22,9 @@ func NonceBytesToUInt64(nonceBytes []byte) (uint64, error) {
 		return 0, fmt.Errorf("%w: expected uint64 value", ErrInvalidNonce)
 	}
 }
+
+// UInt64ToNonceBytes converts the given nonce uint64 to nonce bytes
+func UInt64ToNonceBytes(value uint64) ([]byte, error) {
+	nonce := protocol.ValueType{Kind: &protocol.ValueType_Uint64Value{Uint64Value: value}}
+	return proto.Marshal(&nonce)
+}
