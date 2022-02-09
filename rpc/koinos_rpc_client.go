@@ -167,7 +167,7 @@ func (c *KoinosRPCClient) GetContractMeta(contractID []byte) (*contract_meta_sto
 }
 
 // SubmitTransaction creates and submits a transaction from a list of operations
-func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util.KoinosKey) ([]byte, error) {
+func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util.KoinosKey) (*protocol.TransactionReceipt, error) {
 	// Cache the public address
 	address := key.AddressBytes()
 
@@ -244,7 +244,7 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 		return nil, err
 	}
 
-	return transaction.Id, nil
+	return cResp.Receipt, nil
 }
 
 // GetChainID gets the chain id
