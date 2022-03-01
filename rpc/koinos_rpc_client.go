@@ -27,6 +27,7 @@ const (
 	GetContractMetaCall   = "contract_meta_store.get_contract_meta"
 )
 
+// SubmissionParams is the parameters for a transaction submission
 type SubmissionParams struct {
 	Nonce   uint64
 	RCLimit uint64
