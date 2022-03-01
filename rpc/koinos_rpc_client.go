@@ -27,6 +27,11 @@ const (
 	GetContractMetaCall   = "contract_meta_store.get_contract_meta"
 )
 
+type SubmissionParams struct {
+	Nonce   uint64
+	RCLimit uint64
+}
+
 // KoinosRPCClient is a wrapper around the jsonrpc client
 type KoinosRPCClient struct {
 	client jsonrpc.RPCClient
@@ -167,18 +172,25 @@ func (c *KoinosRPCClient) GetContractMeta(contractID []byte) (*contract_meta_sto
 }
 
 // SubmitTransaction creates and submits a transaction from a list of operations
-func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util.KoinosKey) (*protocol.TransactionReceipt, error) {
+func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams) (*protocol.TransactionReceipt, error) {
 	// Cache the public address
 	address := key.AddressBytes()
 
-	// Fetch the account's nonce
-	nonce, err := c.GetAccountNonce(address)
-	if err != nil {
-		return nil, err
+	var nonce uint64
+
+	// If the nonce is not provided, get it from the chain
+	if subParams == nil || subParams.Nonce == 0 {
+		nonce, err := c.GetAccountNonce(address)
+		if err != nil {
+			return nil, err
+		}
+		nonce++
+	} else {
+		nonce = subParams.Nonce
 	}
 
-	// Convert none+1 to bytes
-	nonceBytes, err := util.UInt64ToNonceBytes(nonce + 1)
+	// Convert nonce to bytes
+	nonceBytes, err := util.UInt64ToNonceBytes(nonce)
 	if err != nil {
 		return nil, err
 	}
