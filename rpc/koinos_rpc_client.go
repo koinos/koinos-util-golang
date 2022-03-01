@@ -176,17 +176,16 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 	// Cache the public address
 	address := key.AddressBytes()
 
-	var nonce uint64
+	var err error
+	nonce := subParams.Nonce
 
 	// If the nonce is not provided, get it from the chain
-	if subParams == nil || subParams.Nonce == 0 {
-		nonce, err := c.GetAccountNonce(address)
+	if subParams == nil || nonce == 0 {
+		nonce, err = c.GetAccountNonce(address)
 		if err != nil {
 			return nil, err
 		}
 		nonce++
-	} else {
-		nonce = subParams.Nonce
 	}
 
 	// Convert nonce to bytes
@@ -195,11 +194,11 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 		return nil, err
 	}
 
-	var rcLimit uint64
+	rcLimit := subParams.RCLimit
 
 	// If the rc limit is not provided, get it from the chain
 	if subParams == nil || subParams.RCLimit == 0 {
-		rcLimit, err := c.GetAccountRc(address)
+		rcLimit, err = c.GetAccountRc(address)
 		if err != nil {
 			return nil, err
 		}
