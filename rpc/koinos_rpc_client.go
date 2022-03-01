@@ -195,9 +195,14 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 		return nil, err
 	}
 
-	rcLimit, err := c.GetAccountRc(address)
-	if err != nil {
-		return nil, err
+	var rcLimit uint64
+
+	// If the rc limit is not provided, get it from the chain
+	if subParams == nil || subParams.RCLimit == 0 {
+		rcLimit, err := c.GetAccountRc(address)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Get operation multihashes
