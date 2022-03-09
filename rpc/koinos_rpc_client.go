@@ -27,6 +27,12 @@ const (
 	GetContractMetaCall   = "contract_meta_store.get_contract_meta"
 )
 
+// SubmissionParams is the parameters for a transaction submission
+type SubmissionParams struct {
+	Nonce   uint64
+	RCLimit uint64
+}
+
 // KoinosRPCClient is a wrapper around the jsonrpc client
 type KoinosRPCClient struct {
 	client jsonrpc.RPCClient
@@ -167,25 +173,36 @@ func (c *KoinosRPCClient) GetContractMeta(contractID []byte) (*contract_meta_sto
 }
 
 // SubmitTransaction creates and submits a transaction from a list of operations
-func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util.KoinosKey) (*protocol.TransactionReceipt, error) {
+func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams) (*protocol.TransactionReceipt, error) {
 	// Cache the public address
 	address := key.AddressBytes()
 
-	// Fetch the account's nonce
-	nonce, err := c.GetAccountNonce(address)
+	var err error
+	nonce := subParams.Nonce
+
+	// If the nonce is not provided, get it from the chain
+	if subParams == nil || nonce == 0 {
+		nonce, err = c.GetAccountNonce(address)
+		if err != nil {
+			return nil, err
+		}
+		nonce++
+	}
+
+	// Convert nonce to bytes
+	nonceBytes, err := util.UInt64ToNonceBytes(nonce)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert none+1 to bytes
-	nonceBytes, err := util.UInt64ToNonceBytes(nonce + 1)
-	if err != nil {
-		return nil, err
-	}
+	rcLimit := subParams.RCLimit
 
-	rcLimit, err := c.GetAccountRc(address)
-	if err != nil {
-		return nil, err
+	// If the rc limit is not provided, get it from the chain
+	if subParams == nil || subParams.RCLimit == 0 {
+		rcLimit, err = c.GetAccountRc(address)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Get operation multihashes
