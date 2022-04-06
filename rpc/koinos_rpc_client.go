@@ -56,23 +56,24 @@ func NewKoinosRPCClient(url string) *KoinosRPCClient {
 }
 
 // Call wraps the rpc client call and handles some of the boilerplate
-func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType proto.Message) *KoinosRPCError {
+func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType proto.Message) error {
 	req, err := kjson.Marshal(params)
 	if err != nil {
-		return &KoinosRPCError{message: err.Error()}
+		return KoinosRPCError{message: err.Error()}
 	}
 
 	// Make the rpc call
 	resp, err := c.client.Call(method, json.RawMessage(req))
 	if err != nil {
-		return &KoinosRPCError{message: err.Error()}
+		return KoinosRPCError{message: err.Error()}
 	}
 	if resp.Error != nil {
-		err := &KoinosRPCError{message: resp.Error.Message}
+		err := KoinosRPCError{message: resp.Error.Message}
 
 		if data, ok := resp.Error.Data.(string); ok {
 			data_map := make(map[string][]string)
-			if e := json.Unmarshal([]byte(data), data_map); e == nil {
+			e := json.Unmarshal([]byte(data), &data_map)
+			if e == nil {
 				if logs, ok := data_map["logs"]; ok {
 					err.Logs = logs
 				}
