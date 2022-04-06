@@ -40,7 +40,7 @@ type KoinosRPCError struct {
 }
 
 // Error returns the error message
-func (e *KoinosRPCError) Error() string {
+func (e KoinosRPCError) Error() string {
 	return e.message
 }
 
