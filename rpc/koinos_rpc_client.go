@@ -33,6 +33,17 @@ type SubmissionParams struct {
 	RCLimit uint64
 }
 
+// KoinosRPCError is a golang error that also contains log messages from a reverted transaction
+type KoinosRPCError struct {
+	Logs    []string
+	message string
+}
+
+// Error returns the error message
+func (e *KoinosRPCError) Error() string {
+	return e.message
+}
+
 // KoinosRPCClient is a wrapper around the jsonrpc client
 type KoinosRPCClient struct {
 	client jsonrpc.RPCClient
@@ -45,19 +56,30 @@ func NewKoinosRPCClient(url string) *KoinosRPCClient {
 }
 
 // Call wraps the rpc client call and handles some of the boilerplate
-func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType proto.Message) error {
+func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType proto.Message) *KoinosRPCError {
 	req, err := kjson.Marshal(params)
 	if err != nil {
-		return err
+		return &KoinosRPCError{message: err.Error()}
 	}
 
 	// Make the rpc call
 	resp, err := c.client.Call(method, json.RawMessage(req))
 	if err != nil {
-		return err
+		return &KoinosRPCError{message: err.Error()}
 	}
 	if resp.Error != nil {
-		return resp.Error
+		err := &KoinosRPCError{message: resp.Error.Message}
+
+		if data, ok := resp.Error.Data.(string); ok {
+			data_map := make(map[string][]string)
+			if e := json.Unmarshal([]byte(data), data_map); e == nil {
+				if logs, ok := data_map["logs"]; ok {
+					err.Logs = logs
+				}
+			}
+		}
+
+		return err
 	}
 
 	// Fetch the contract response
@@ -65,12 +87,12 @@ func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType p
 
 	err = resp.GetObject(&raw)
 	if err != nil {
-		return err
+		return &KoinosRPCError{message: err.Error()}
 	}
 
 	err = kjson.Unmarshal([]byte(raw), returnType)
 	if err != nil {
-		return err
+		return &KoinosRPCError{message: err.Error()}
 	}
 
 	return nil
@@ -142,7 +164,8 @@ func (c *KoinosRPCClient) GetAccountNonce(address []byte) (uint64, error) {
 
 	// Make the rpc call
 	var cResp chain.GetAccountNonceResponse
-	err := c.Call(GetAccountNonceCall, &params, &cResp)
+	var err error
+	err = c.Call(GetAccountNonceCall, &params, &cResp)
 	if err != nil {
 		return 0, err
 	}
