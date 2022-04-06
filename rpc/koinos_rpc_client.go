@@ -165,8 +165,7 @@ func (c *KoinosRPCClient) GetAccountNonce(address []byte) (uint64, error) {
 
 	// Make the rpc call
 	var cResp chain.GetAccountNonceResponse
-	var err error
-	err = c.Call(GetAccountNonceCall, &params, &cResp)
+	err := c.Call(GetAccountNonceCall, &params, &cResp)
 	if err != nil {
 		return 0, err
 	}
