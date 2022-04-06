@@ -59,13 +59,13 @@ func NewKoinosRPCClient(url string) *KoinosRPCClient {
 func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType proto.Message) error {
 	req, err := kjson.Marshal(params)
 	if err != nil {
-		return KoinosRPCError{message: err.Error()}
+		return err
 	}
 
 	// Make the rpc call
 	resp, err := c.client.Call(method, json.RawMessage(req))
 	if err != nil {
-		return KoinosRPCError{message: err.Error()}
+		return err
 	}
 	if resp.Error != nil {
 		err := KoinosRPCError{message: resp.Error.Message}
@@ -88,12 +88,12 @@ func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType p
 
 	err = resp.GetObject(&raw)
 	if err != nil {
-		return &KoinosRPCError{message: err.Error()}
+		return err
 	}
 
 	err = kjson.Unmarshal([]byte(raw), returnType)
 	if err != nil {
-		return &KoinosRPCError{message: err.Error()}
+		return err
 	}
 
 	return nil
