@@ -8,10 +8,12 @@ import (
 )
 
 // EnsureDir checks for existence of a directory and recursively creates it if needed
-func EnsureDir(dir string) {
+func EnsureDir(dir string) error {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		os.MkdirAll(dir, os.ModePerm)
+		return os.MkdirAll(dir, os.ModePerm)
 	}
+
+	return nil
 }
 
 // GetAppDir forms the application data directory from the given input
@@ -34,12 +36,14 @@ func GetHomeDir() string {
 }
 
 // InitBaseDir creates the base directory
-func InitBaseDir(baseDir string) string {
+func InitBaseDir(baseDir string) (string, error) {
 	if !filepath.IsAbs(baseDir) {
 		homedir := GetHomeDir()
 		baseDir = filepath.Join(homedir, baseDir)
 	}
-	EnsureDir(baseDir)
+	if err := EnsureDir(baseDir); err != nil {
+		return "", err
+	}
 
-	return baseDir
+	return baseDir, nil
 }
