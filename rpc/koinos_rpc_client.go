@@ -178,10 +178,16 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 	address := key.AddressBytes()
 
 	var err error
-	nonce := subParams.Nonce
+	var nonce uint64 = 0
+	var rcLimit uint64 = 0
+
+	if subParams != nil {
+		nonce = subParams.Nonce
+		rcLimit = subParams.RCLimit
+	}
 
 	// If the nonce is not provided, get it from the chain
-	if subParams == nil || nonce == 0 {
+	if nonce == 0 {
 		nonce, err = c.GetAccountNonce(address)
 		if err != nil {
 			return nil, err
@@ -195,10 +201,8 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 		return nil, err
 	}
 
-	rcLimit := subParams.RCLimit
-
 	// If the rc limit is not provided, get it from the chain
-	if subParams == nil || subParams.RCLimit == 0 {
+	if rcLimit == 0 {
 		rcLimit, err = c.GetAccountRc(address)
 		if err != nil {
 			return nil, err

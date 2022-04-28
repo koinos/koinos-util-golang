@@ -14,7 +14,9 @@ type Void struct{}
 func NonceBytesToUInt64(nonceBytes []byte) (uint64, error) {
 	// Extract the uint64 nonce from the response
 	var nonce protocol.ValueType
-	proto.Unmarshal(nonceBytes, &nonce)
+	if err := proto.Unmarshal(nonceBytes, &nonce); err != nil {
+		return 0, err
+	}
 	switch x := nonce.Kind.(type) {
 	case *protocol.ValueType_Uint64Value:
 		return x.Uint64Value, nil
