@@ -33,6 +33,17 @@ type SubmissionParams struct {
 	RCLimit uint64
 }
 
+// KoinosRPCError is a golang error that also contains log messages from a reverted transaction
+type KoinosRPCError struct {
+	Logs    []string
+	message string
+}
+
+// Error returns the error message
+func (e KoinosRPCError) Error() string {
+	return e.message
+}
+
 // KoinosRPCClient is a wrapper around the jsonrpc client
 type KoinosRPCClient struct {
 	client jsonrpc.RPCClient
@@ -57,7 +68,19 @@ func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType p
 		return err
 	}
 	if resp.Error != nil {
-		return resp.Error
+		err := KoinosRPCError{message: resp.Error.Message}
+
+		if data, ok := resp.Error.Data.(string); ok {
+			dataMap := make(map[string][]string)
+			e := json.Unmarshal([]byte(data), &dataMap)
+			if e == nil {
+				if logs, ok := dataMap["logs"]; ok {
+					err.Logs = logs
+				}
+			}
+		}
+
+		return err
 	}
 
 	// Fetch the contract response
