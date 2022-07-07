@@ -57,12 +57,12 @@ func (keys *KoinosKey) Private() string {
 
 // Public gets the public key in base58
 func (keys *KoinosKey) Public() string {
-	return base58.Encode(crypto.FromECDSAPub(&keys.PrivateKey.PublicKey))
+	return base58.Encode(crypto.CompressPubkey(&keys.PrivateKey.PublicKey))
 }
 
 // PublicBytes get the public key bytes
 func (keys *KoinosKey) PublicBytes() []byte {
-	return crypto.FromECDSAPub(&keys.PrivateKey.PublicKey)
+	return crypto.CompressPubkey(&keys.PrivateKey.PublicKey)
 }
 
 // PrivateBytes gets the private key bytes
