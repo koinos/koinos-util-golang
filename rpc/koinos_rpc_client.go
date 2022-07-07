@@ -71,10 +71,10 @@ func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType p
 		err := KoinosRPCError{message: resp.Error.Message}
 
 		if data, ok := resp.Error.Data.(string); ok {
-			data_map := make(map[string][]string)
-			e := json.Unmarshal([]byte(data), &data_map)
+			dataMap := make(map[string][]string)
+			e := json.Unmarshal([]byte(data), &dataMap)
 			if e == nil {
-				if logs, ok := data_map["logs"]; ok {
+				if logs, ok := dataMap["logs"]; ok {
 					err.Logs = logs
 				}
 			}
