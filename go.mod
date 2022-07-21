@@ -11,6 +11,7 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/ybbus/jsonrpc/v2 v2.1.6
+	github.com/ybbus/jsonrpc/v3 v3.1.1 // indirect
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 )
