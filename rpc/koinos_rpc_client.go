@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 
@@ -13,7 +14,7 @@ import (
 	contract_meta_store_rpc "github.com/koinos/koinos-proto-golang/koinos/rpc/contract_meta_store"
 	util "github.com/koinos/koinos-util-golang"
 	"github.com/multiformats/go-multihash"
-	jsonrpc "github.com/ybbus/jsonrpc/v2"
+	jsonrpc "github.com/ybbus/jsonrpc/v3"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -56,14 +57,14 @@ func NewKoinosRPCClient(url string) *KoinosRPCClient {
 }
 
 // Call wraps the rpc client call and handles some of the boilerplate
-func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType proto.Message) error {
+func (c *KoinosRPCClient) Call(ctx context.Context, method string, params proto.Message, returnType proto.Message) error {
 	req, err := kjson.Marshal(params)
 	if err != nil {
 		return err
 	}
 
 	// Make the rpc call
-	resp, err := c.client.Call(method, json.RawMessage(req))
+	resp, err := c.client.Call(ctx, method, json.RawMessage(req))
 	if err != nil {
 		return err
 	}
@@ -100,7 +101,7 @@ func (c *KoinosRPCClient) Call(method string, params proto.Message, returnType p
 }
 
 // GetAccountBalance gets the balance of a given account
-func (c *KoinosRPCClient) GetAccountBalance(address []byte, contractID []byte, balanceOfEntry uint32) (uint64, error) {
+func (c *KoinosRPCClient) GetAccountBalance(ctx context.Context, address []byte, contractID []byte, balanceOfEntry uint32) (uint64, error) {
 	// Make the rpc call
 	balanceOfArgs := &token.BalanceOfArguments{
 		Owner: address,
@@ -110,7 +111,7 @@ func (c *KoinosRPCClient) GetAccountBalance(address []byte, contractID []byte, b
 		return 0, err
 	}
 
-	cResp, err := c.ReadContract(argBytes, contractID, balanceOfEntry)
+	cResp, err := c.ReadContract(ctx, argBytes, contractID, balanceOfEntry)
 	if err != nil {
 		return 0, err
 	}
@@ -125,13 +126,13 @@ func (c *KoinosRPCClient) GetAccountBalance(address []byte, contractID []byte, b
 }
 
 // ReadContract reads from the given contract and returns the response
-func (c *KoinosRPCClient) ReadContract(args []byte, contractID []byte, entryPoint uint32) (*chain.ReadContractResponse, error) {
+func (c *KoinosRPCClient) ReadContract(ctx context.Context, args []byte, contractID []byte, entryPoint uint32) (*chain.ReadContractResponse, error) {
 	// Build the contract request
 	params := chain.ReadContractRequest{ContractId: contractID, EntryPoint: entryPoint, Args: args}
 
 	// Make the rpc call
 	var cResp chain.ReadContractResponse
-	err := c.Call(ReadContractCall, &params, &cResp)
+	err := c.Call(ctx, ReadContractCall, &params, &cResp)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +141,7 @@ func (c *KoinosRPCClient) ReadContract(args []byte, contractID []byte, entryPoin
 }
 
 // GetAccountRc gets the rc of a given account
-func (c *KoinosRPCClient) GetAccountRc(address []byte) (uint64, error) {
+func (c *KoinosRPCClient) GetAccountRc(ctx context.Context, address []byte) (uint64, error) {
 	// Build the contract request
 	params := chain.GetAccountRcRequest{
 		Account: address,
@@ -148,7 +149,7 @@ func (c *KoinosRPCClient) GetAccountRc(address []byte) (uint64, error) {
 
 	// Make the rpc call
 	var cResp chain.GetAccountRcResponse
-	err := c.Call(GetAccountRcCall, &params, &cResp)
+	err := c.Call(ctx, GetAccountRcCall, &params, &cResp)
 	if err != nil {
 		return 0, err
 	}
@@ -157,7 +158,7 @@ func (c *KoinosRPCClient) GetAccountRc(address []byte) (uint64, error) {
 }
 
 // GetAccountNonce gets the nonce of a given account
-func (c *KoinosRPCClient) GetAccountNonce(address []byte) (uint64, error) {
+func (c *KoinosRPCClient) GetAccountNonce(ctx context.Context, address []byte) (uint64, error) {
 	// Build the contract request
 	params := chain.GetAccountNonceRequest{
 		Account: address,
@@ -165,7 +166,7 @@ func (c *KoinosRPCClient) GetAccountNonce(address []byte) (uint64, error) {
 
 	// Make the rpc call
 	var cResp chain.GetAccountNonceResponse
-	err := c.Call(GetAccountNonceCall, &params, &cResp)
+	err := c.Call(ctx, GetAccountNonceCall, &params, &cResp)
 	if err != nil {
 		return 0, err
 	}
@@ -179,7 +180,7 @@ func (c *KoinosRPCClient) GetAccountNonce(address []byte) (uint64, error) {
 }
 
 // GetContractMeta gets the metadata of a given contract
-func (c *KoinosRPCClient) GetContractMeta(contractID []byte) (*contract_meta_store.ContractMetaItem, error) {
+func (c *KoinosRPCClient) GetContractMeta(ctx context.Context, contractID []byte) (*contract_meta_store.ContractMetaItem, error) {
 	// Build the contract request
 	params := contract_meta_store_rpc.GetContractMetaRequest{
 		ContractId: contractID,
@@ -187,7 +188,7 @@ func (c *KoinosRPCClient) GetContractMeta(contractID []byte) (*contract_meta_sto
 
 	// Make the rpc call
 	var cResp contract_meta_store_rpc.GetContractMetaResponse
-	err := c.Call(GetContractMetaCall, &params, &cResp)
+	err := c.Call(ctx, GetContractMetaCall, &params, &cResp)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +197,7 @@ func (c *KoinosRPCClient) GetContractMeta(contractID []byte) (*contract_meta_sto
 }
 
 // SubmitTransaction creates and submits a transaction from a list of operations
-func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, broadcast bool) (*protocol.TransactionReceipt, error) {
+func (c *KoinosRPCClient) SubmitTransaction(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, broadcast bool) (*protocol.TransactionReceipt, error) {
 	// Cache the public address
 	address := key.AddressBytes()
 
@@ -211,7 +212,7 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 
 	// If the nonce is not provided, get it from the chain
 	if nonce == 0 {
-		nonce, err = c.GetAccountNonce(address)
+		nonce, err = c.GetAccountNonce(ctx, address)
 		if err != nil {
 			return nil, err
 		}
@@ -226,7 +227,7 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 
 	// If the rc limit is not provided, get it from the chain
 	if rcLimit == 0 {
-		rcLimit, err = c.GetAccountRc(address)
+		rcLimit, err = c.GetAccountRc(ctx, address)
 		if err != nil {
 			return nil, err
 		}
@@ -247,7 +248,7 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 		return nil, err
 	}
 
-	chainID, err := c.GetChainID()
+	chainID, err := c.GetChainID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +285,7 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 
 	// Make the rpc call
 	var cResp chain.SubmitTransactionResponse
-	err = c.Call(SubmitTransactionCall, &params, &cResp)
+	err = c.Call(ctx, SubmitTransactionCall, &params, &cResp)
 	if err != nil {
 		return nil, err
 	}
@@ -293,13 +294,13 @@ func (c *KoinosRPCClient) SubmitTransaction(ops []*protocol.Operation, key *util
 }
 
 // GetChainID gets the chain id
-func (c *KoinosRPCClient) GetChainID() ([]byte, error) {
+func (c *KoinosRPCClient) GetChainID(ctx context.Context) ([]byte, error) {
 	// Build the contract request
 	params := chain.GetChainIdRequest{}
 
 	// Make the rpc call
 	var cResp chain.GetChainIdResponse
-	err := c.Call(GetChainIDCall, &params, &cResp)
+	err := c.Call(ctx, GetChainIDCall, &params, &cResp)
 	if err != nil {
 		return nil, err
 	}
