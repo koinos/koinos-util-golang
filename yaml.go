@@ -71,6 +71,23 @@ func GetBoolOption(key string, defaultValue bool, cliArg bool, configs ...map[st
 	return defaultValue
 }
 
+// GetIntOption fetches an int value, respecting values in a given config
+func GetIntOption(key string, defaultValue int, cliArg int, configs ...map[string]interface{}) int {
+	if cliArg != defaultValue {
+		return cliArg
+	}
+
+	for _, config := range configs {
+		if v, ok := config[key]; ok {
+			if option, ok := v.(int); ok && option != defaultValue {
+				return option
+			}
+		}
+	}
+
+	return defaultValue
+}
+
 // InitYamlConfig initializes a yaml config
 func InitYamlConfig(baseDir string) *YamlConfig {
 	yamlConfigPath := filepath.Join(baseDir, "config.yml")
