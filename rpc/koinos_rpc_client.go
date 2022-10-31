@@ -261,7 +261,7 @@ func (c *KoinosRPCClient) SubmitTransactionWithPayer(ctx context.Context, ops []
 
 	// Create the header
 	var header protocol.TransactionHeader
-	if bytes.Compare(payer, address) == 0 {
+	if bytes.Equal(payer, address) {
 		header = protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer}
 	} else {
 		header = protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer, Payee: address}
