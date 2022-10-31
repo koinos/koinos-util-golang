@@ -196,11 +196,12 @@ func (c *KoinosRPCClient) GetContractMeta(ctx context.Context, contractID []byte
 	return cResp.Meta, nil
 }
 
+// SubmitTransaction creates and submits a transaction from a list of operations
 func (c *KoinosRPCClient) SubmitTransaction(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, broadcast bool) (*protocol.TransactionReceipt, error) {
-	return c.SubmitTransactionWithPayer(ctx, ops, key, subParams, key.AddressBytes(), broadcast, nil)
+	return c.SubmitTransactionWithPayer(ctx, ops, key, subParams, key.AddressBytes(), broadcast)
 }
 
-// SubmitTransaction creates and submits a transaction from a list of operations
+// SubmitTransaction creates and submits a transaction from a list of operations with a specified payer
 func (c *KoinosRPCClient) SubmitTransactionWithPayer(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, payer []byte, broadcast bool) (*protocol.TransactionReceipt, error) {
 	// Cache the public address
 	address := key.AddressBytes()
