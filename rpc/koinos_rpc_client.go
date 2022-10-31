@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -259,7 +260,10 @@ func (c *KoinosRPCClient) SubmitTransactionWithPayer(ctx context.Context, ops []
 	}
 
 	// Create the header
-	header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer}
+	if bytes.Compare(payer, address) == 0 {
+		header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer}
+	} else {
+		header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer, Payee: address}
 	headerBytes, err := canonical.Marshal(&header)
 	if err != nil {
 		return nil, err
