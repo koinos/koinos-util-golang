@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -198,6 +199,11 @@ func (c *KoinosRPCClient) GetContractMeta(ctx context.Context, contractID []byte
 
 // SubmitTransaction creates and submits a transaction from a list of operations
 func (c *KoinosRPCClient) SubmitTransaction(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, broadcast bool) (*protocol.TransactionReceipt, error) {
+	return c.SubmitTransactionWithPayer(ctx, ops, key, subParams, key.AddressBytes(), broadcast)
+}
+
+// SubmitTransaction creates and submits a transaction from a list of operations with a specified payer
+func (c *KoinosRPCClient) SubmitTransactionWithPayer(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, payer []byte, broadcast bool) (*protocol.TransactionReceipt, error) {
 	// Cache the public address
 	address := key.AddressBytes()
 
@@ -254,7 +260,13 @@ func (c *KoinosRPCClient) SubmitTransaction(ctx context.Context, ops []*protocol
 	}
 
 	// Create the header
-	header := protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: address}
+	var header protocol.TransactionHeader
+	if bytes.Equal(payer, address) {
+		header = protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer}
+	} else {
+		header = protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer, Payee: address}
+	}
+
 	headerBytes, err := canonical.Marshal(&header)
 	if err != nil {
 		return nil, err
