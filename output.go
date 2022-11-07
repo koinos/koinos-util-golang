@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"regexp"
 
 	"github.com/koinos/koinos-proto-golang/koinos"
 	"github.com/koinos/koinos-proto-golang/koinos/canonical"
@@ -65,4 +66,13 @@ func DisplayAddress(addressBytes []byte) string {
 // HexStringToBytes decodes a hex string to a byte slice
 func HexStringToBytes(s string) ([]byte, error) {
 	return hex.DecodeString(s[2:])
+}
+
+// CheckIsValidAddress takes a string and returns a boolean if it is potentially valid
+// Uses P2PKH (original bitcoin spec)
+// 34 alphanumeric characters beginning with the number 1, random digits, upper/lower case characters
+// exceptions: uppercase letter O, uppercase letter I, lowercase letter l, and the number 0
+func CheckIsValidAddress(s string) bool {
+	result, _ := regexp.MatchString("^[1][a-km-zA-HJ-NP-Z1-9]{33}$", s)
+	return result
 }
