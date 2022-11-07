@@ -73,6 +73,6 @@ func HexStringToBytes(s string) ([]byte, error) {
 // 34 alphanumeric characters beginning with the number 1, random digits, upper/lower case characters
 // exceptions: uppercase letter O, uppercase letter I, lowercase letter l, and the number 0
 func CheckIsValidAddress(s string) bool {
-	result, _ := regexp.MatchString("^[1][a-km-zA-HJ-NP-Z1-9]{33}$", s)
+	result, _ := regexp.MatchString("^[1][a-km-zA-HJ-NP-Z1-9]{32,34}$", s)
 	return result
 }
