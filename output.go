@@ -70,7 +70,7 @@ func HexStringToBytes(s string) ([]byte, error) {
 
 // CheckIsValidAddress takes a string and returns a boolean if it is potentially valid
 // Uses P2PKH (original bitcoin spec)
-// 34 alphanumeric characters beginning with the number 1, random digits, upper/lower case characters
+// 33-35 alphanumeric characters beginning with the number 1, random digits, upper/lower case characters
 // exceptions: uppercase letter O, uppercase letter I, lowercase letter l, and the number 0
 func CheckIsValidAddress(s string) bool {
 	result, _ := regexp.MatchString("^[1][a-km-zA-HJ-NP-Z1-9]{32,34}$", s)
