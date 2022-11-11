@@ -1,20 +1,16 @@
 package rpc
 
 import (
-	"bytes"
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 
 	kjson "github.com/koinos/koinos-proto-golang/encoding/json"
-	"github.com/koinos/koinos-proto-golang/koinos/canonical"
 	"github.com/koinos/koinos-proto-golang/koinos/contract_meta_store"
 	"github.com/koinos/koinos-proto-golang/koinos/contracts/token"
 	"github.com/koinos/koinos-proto-golang/koinos/protocol"
 	"github.com/koinos/koinos-proto-golang/koinos/rpc/chain"
 	contract_meta_store_rpc "github.com/koinos/koinos-proto-golang/koinos/rpc/contract_meta_store"
 	util "github.com/koinos/koinos-util-golang"
-	"github.com/multiformats/go-multihash"
 	jsonrpc "github.com/ybbus/jsonrpc/v3"
 	"google.golang.org/protobuf/proto"
 )
@@ -33,6 +29,7 @@ const (
 type SubmissionParams struct {
 	Nonce   uint64
 	RCLimit uint64
+	ChainID []byte
 }
 
 // KoinosRPCError is a golang error that also contains log messages from a reverted transaction
@@ -198,22 +195,24 @@ func (c *KoinosRPCClient) GetContractMeta(ctx context.Context, contractID []byte
 }
 
 // SubmitTransaction creates and submits a transaction from a list of operations
-func (c *KoinosRPCClient) SubmitTransaction(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, broadcast bool) (*protocol.TransactionReceipt, error) {
-	return c.SubmitTransactionWithPayer(ctx, ops, key, subParams, key.AddressBytes(), broadcast)
+func (c *KoinosRPCClient) SubmitTransactionOps(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, broadcast bool) (*protocol.TransactionReceipt, error) {
+	return c.SubmitTransactionOpsWithPayer(ctx, ops, key, subParams, key.AddressBytes(), broadcast)
 }
 
 // SubmitTransaction creates and submits a transaction from a list of operations with a specified payer
-func (c *KoinosRPCClient) SubmitTransactionWithPayer(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, payer []byte, broadcast bool) (*protocol.TransactionReceipt, error) {
+func (c *KoinosRPCClient) SubmitTransactionOpsWithPayer(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, payer []byte, broadcast bool) (*protocol.TransactionReceipt, error) {
 	// Cache the public address
 	address := key.AddressBytes()
 
 	var err error
 	var nonce uint64 = 0
 	var rcLimit uint64 = 0
+	var chainID []byte = nil
 
 	if subParams != nil {
 		nonce = subParams.Nonce
 		rcLimit = subParams.RCLimit
+		chainID = subParams.ChainID
 	}
 
 	// If the nonce is not provided, get it from the chain
@@ -225,12 +224,6 @@ func (c *KoinosRPCClient) SubmitTransactionWithPayer(ctx context.Context, ops []
 		nonce++
 	}
 
-	// Convert nonce to bytes
-	nonceBytes, err := util.UInt64ToNonceBytes(nonce)
-	if err != nil {
-		return nil, err
-	}
-
 	// If the rc limit is not provided, get it from the chain
 	if rcLimit == 0 {
 		rcLimit, err = c.GetAccountRc(ctx, address)
@@ -239,65 +232,32 @@ func (c *KoinosRPCClient) SubmitTransactionWithPayer(ctx context.Context, ops []
 		}
 	}
 
-	// Get operation multihashes
-	opHashes := make([][]byte, len(ops))
-	for i, op := range ops {
-		opHashes[i], err = util.HashMessage(op)
+	if chainID == nil {
+		chainID, err = c.GetChainID(ctx)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// Find merkle root
-	merkleRoot, err := util.CalculateMerkleRoot(opHashes)
-	if err != nil {
-		return nil, err
-	}
-
-	chainID, err := c.GetChainID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create the header
-	var header protocol.TransactionHeader
-	if bytes.Equal(payer, address) {
-		header = protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer}
-	} else {
-		header = protocol.TransactionHeader{ChainId: chainID, RcLimit: rcLimit, Nonce: nonceBytes, OperationMerkleRoot: merkleRoot, Payer: payer, Payee: address}
-	}
-
-	headerBytes, err := canonical.Marshal(&header)
-	if err != nil {
-		return nil, err
-	}
-
-	// Calculate the transaction ID
-	sha256Hasher := sha256.New()
-	sha256Hasher.Write(headerBytes)
-	tid, err := multihash.Encode(sha256Hasher.Sum(nil), multihash.SHA2_256)
-	if err != nil {
-		return nil, err
-	}
-
 	// Create the transaction
-	transaction := protocol.Transaction{Header: &header, Operations: ops, Id: tid}
-
-	// Sign the transaction
-	err = util.SignTransaction(key.PrivateBytes(), &transaction)
-
+	transaction, err := util.CreateSignedTransaction(ctx, ops, key, nonce, rcLimit, chainID, payer)
 	if err != nil {
 		return nil, err
 	}
 
 	// Submit the transaction
+	return c.SubmitTransaction(ctx, transaction, broadcast)
+}
+
+// SubmitTransaction creates and submits a transaction from a list of operations
+func (c *KoinosRPCClient) SubmitTransaction(ctx context.Context, transaction *protocol.Transaction, broadcast bool) (*protocol.TransactionReceipt, error) {
 	params := chain.SubmitTransactionRequest{}
-	params.Transaction = &transaction
+	params.Transaction = transaction
 	params.Broadcast = broadcast
 
 	// Make the rpc call
 	var cResp chain.SubmitTransactionResponse
-	err = c.Call(ctx, SubmitTransactionCall, &params, &cResp)
+	err := c.Call(ctx, SubmitTransactionCall, &params, &cResp)
 	if err != nil {
 		return nil, err
 	}

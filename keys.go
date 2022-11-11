@@ -11,8 +11,6 @@ import (
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/koinos/koinos-proto-golang/koinos/protocol"
-	"github.com/multiformats/go-multihash"
 )
 
 const compressMagic byte = 0x01
@@ -146,30 +144,4 @@ func DecodeWIF(wif string) ([]byte, error) {
 	privKeyBytes := decoded[1 : 1+btcec.PrivKeyBytesLen]
 
 	return privKeyBytes, nil
-}
-
-// SignTransaction signs the transaction with the given key
-func SignTransaction(key []byte, tx *protocol.Transaction) error {
-	privateKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), key)
-
-	// Decode the mutlihashed ID
-	idBytes, err := multihash.Decode(tx.Id)
-	if err != nil {
-		return err
-	}
-
-	// Sign the transaction ID
-	signatureBytes, err := btcec.SignCompact(btcec.S256(), privateKey, idBytes.Digest, true)
-	if err != nil {
-		return err
-	}
-
-	// Attach the signature data to the transaction
-	if tx.Signatures == nil {
-		tx.Signatures = [][]byte{signatureBytes}
-	} else {
-		tx.Signatures = append(tx.Signatures, signatureBytes)
-	}
-
-	return nil
 }
