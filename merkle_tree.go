@@ -10,6 +10,10 @@ import (
 func CalculateMerkleRoot(nodes [][]byte) ([]byte, error) {
 	hasher := sha256.New()
 
+	if len(nodes) == 0 {
+		return multihash.Encode(hasher.Sum(nil), multihash.SHA2_256)
+	}
+
 	for len(nodes) > 1 {
 		for i := 0; i < len(nodes); i += 2 {
 			if i+1 < len(nodes) {
