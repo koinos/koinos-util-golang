@@ -123,6 +123,9 @@ func (tb *TransactionBuilder) Build(ctx context.Context, signed bool) (*protocol
 		rcLimitDec := rcDec.Mul(*fracDec)
 
 		rcLimit, err = util.DecimalToSatoshi(&rcLimitDec, 8)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Get the chain ID
