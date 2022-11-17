@@ -195,61 +195,6 @@ func (c *KoinosRPCClient) GetContractMeta(ctx context.Context, contractID []byte
 }
 
 // SubmitTransaction creates and submits a transaction from a list of operations
-func (c *KoinosRPCClient) SubmitTransactionOps(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, broadcast bool) (*protocol.TransactionReceipt, error) {
-	return c.SubmitTransactionOpsWithPayer(ctx, ops, key, subParams, key.AddressBytes(), broadcast)
-}
-
-// SubmitTransaction creates and submits a transaction from a list of operations with a specified payer
-func (c *KoinosRPCClient) SubmitTransactionOpsWithPayer(ctx context.Context, ops []*protocol.Operation, key *util.KoinosKey, subParams *SubmissionParams, payer []byte, broadcast bool) (*protocol.TransactionReceipt, error) {
-	// Cache the public address
-	address := key.AddressBytes()
-
-	var err error
-	var nonce uint64 = 0
-	var rcLimit uint64 = 0
-	var chainID []byte = nil
-
-	if subParams != nil {
-		nonce = subParams.Nonce
-		rcLimit = subParams.RCLimit
-		chainID = subParams.ChainID
-	}
-
-	// If the nonce is not provided, get it from the chain
-	if nonce == 0 {
-		nonce, err = c.GetAccountNonce(ctx, address)
-		if err != nil {
-			return nil, err
-		}
-		nonce++
-	}
-
-	// If the rc limit is not provided, get it from the chain
-	if rcLimit == 0 {
-		rcLimit, err = c.GetAccountRc(ctx, address)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if chainID == nil {
-		chainID, err = c.GetChainID(ctx)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Create the transaction
-	transaction, err := util.CreateSignedTransaction(ctx, ops, key, nonce, rcLimit, chainID, payer)
-	if err != nil {
-		return nil, err
-	}
-
-	// Submit the transaction
-	return c.SubmitTransaction(ctx, transaction, broadcast)
-}
-
-// SubmitTransaction creates and submits a transaction from a list of operations
 func (c *KoinosRPCClient) SubmitTransaction(ctx context.Context, transaction *protocol.Transaction, broadcast bool) (*protocol.TransactionReceipt, error) {
 	params := chain.SubmitTransactionRequest{}
 	params.Transaction = transaction
