@@ -3,7 +3,7 @@ package util
 import (
 	"fmt"
 
-	"github.com/koinos/koinos-proto-golang/koinos/protocol"
+	"github.com/koinos/koinos-proto-golang/koinos/chain"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -13,12 +13,12 @@ type Void struct{}
 // NonceBytesToUInt64 converts the given nonce bytes to a UInt64
 func NonceBytesToUInt64(nonceBytes []byte) (uint64, error) {
 	// Extract the uint64 nonce from the response
-	var nonce protocol.ValueType
+	var nonce chain.ValueType
 	if err := proto.Unmarshal(nonceBytes, &nonce); err != nil {
 		return 0, err
 	}
 	switch x := nonce.Kind.(type) {
-	case *protocol.ValueType_Uint64Value:
+	case *chain.ValueType_Uint64Value:
 		return x.Uint64Value, nil
 	default:
 		return 0, fmt.Errorf("%w: expected uint64 value", ErrInvalidNonce)
@@ -27,6 +27,6 @@ func NonceBytesToUInt64(nonceBytes []byte) (uint64, error) {
 
 // UInt64ToNonceBytes converts the given nonce uint64 to nonce bytes
 func UInt64ToNonceBytes(value uint64) ([]byte, error) {
-	nonce := protocol.ValueType{Kind: &protocol.ValueType_Uint64Value{Uint64Value: value}}
+	nonce := chain.ValueType{Kind: &chain.ValueType_Uint64Value{Uint64Value: value}}
 	return proto.Marshal(&nonce)
 }
