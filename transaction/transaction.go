@@ -47,7 +47,7 @@ func (tb *TransactionBuilder) SetNonce(nonce uint64) error {
 }
 
 // SetRPCLimit sets the RC limit of the transaction
-func (tb *TransactionBuilder) SetRPCLimit(rcLimit uint64, absolute bool) {
+func (tb *TransactionBuilder) SetRCLimit(rcLimit uint64, absolute bool) {
 	tb.rcLimit = rcLimit
 	tb.rcLimitAbsolute = absolute
 }
@@ -80,7 +80,7 @@ func (tb *TransactionBuilder) Build(ctx context.Context, signed bool) (*protocol
 	address := tb.key.AddressBytes()
 
 	// Fetch the nonce if it is not set
-	var nonce []byte
+	nonce := tb.nonceBytes
 	if tb.nonceBytes == nil {
 		if tb.rpcClient == nil {
 			return nil, fmt.Errorf("%w: no nonce given and no RPC client set", ErrInvalidTransactionBuilderRequest)
