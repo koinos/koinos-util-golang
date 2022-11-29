@@ -31,8 +31,8 @@ func GenerateKoinosKey() (*KoinosKey, error) {
 	return keys, nil
 }
 
-// NewKoinosKeysFromBytes creates a new key set from a private key byte slice
-func NewKoinosKeysFromBytes(private []byte) (*KoinosKey, error) {
+// NewKoinosKeyFromBytes creates a new key set from a private key byte slice
+func NewKoinosKeyFromBytes(private []byte) (*KoinosKey, error) {
 	pk, err := crypto.ToECDSA(private)
 	if err != nil {
 		return nil, err
@@ -48,12 +48,12 @@ func (keys *KoinosKey) AddressBytes() []byte {
 	return base58.Decode(mainNetAddr.EncodeAddress())
 }
 
-// Private gets the private key in base58
+// Private gets the private key in WIF format
 func (keys *KoinosKey) Private() string {
-	return EncodeWIF(crypto.FromECDSA(keys.PrivateKey), false, 128)
+	return EncodeWIF(crypto.FromECDSA(keys.PrivateKey), true, 128)
 }
 
-// Public gets the public key in base58
+// Public gets the compressed public key in base58
 func (keys *KoinosKey) Public() string {
 	return base58.Encode(crypto.CompressPubkey(&keys.PrivateKey.PublicKey))
 }

@@ -51,6 +51,16 @@ func TestMerkleTree(t *testing.T) {
 	checkLeaves(t, merkleRoot, hashes)
 }
 
+func TestEmptyTree(t *testing.T) {
+	hashes := [][]byte{}
+
+	expected, _ := multihash.Encode(sha256.New().Sum(nil), multihash.SHA2_256)
+
+	root, err := CalculateMerkleRoot(hashes)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, root)
+}
+
 func makeTestRoot(s string) []byte {
 	b, _ := hex.DecodeString(s)
 	n, _ := multihash.Encode(b, multihash.SHA2_256)
