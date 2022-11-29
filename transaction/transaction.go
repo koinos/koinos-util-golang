@@ -17,7 +17,7 @@ import (
 type TransactionBuilder struct {
 	ops             []*protocol.Operation
 	rpcClient       *rpc.KoinosRPCClient
-	nonceBytes      []byte
+	nonceValue      *uint64
 	rcLimit         uint64
 	rcLimitAbsolute bool
 	chainID         []byte
@@ -36,14 +36,8 @@ func (tb *TransactionBuilder) SetRPCClient(rpcClient *rpc.KoinosRPCClient) {
 }
 
 // SetNonce sets the nonce of the transaction
-func (tb *TransactionBuilder) SetNonce(nonce uint64) error {
-	bytes, err := util.UInt64ToNonceBytes(nonce)
-	if err != nil {
-		return err
-	}
-
-	tb.nonceBytes = bytes
-	return nil
+func (tb *TransactionBuilder) SetNonce(nonce uint64) {
+	tb.nonceValue = &nonce
 }
 
 // SetRPCLimit sets the RC limit of the transaction
@@ -80,8 +74,12 @@ func (tb *TransactionBuilder) Build(ctx context.Context, signed bool) (*protocol
 	address := tb.key.AddressBytes()
 
 	// Fetch the nonce if it is not set
-	nonce := tb.nonceBytes
-	if tb.nonceBytes == nil {
+	nonce, err := util.UInt64ToNonceBytes(*tb.nonceValue)
+	if err != nil {
+		return nil, err
+	}
+
+	if tb.nonceValue == nil {
 		if tb.rpcClient == nil {
 			return nil, fmt.Errorf("%w: no nonce given and no RPC client set", ErrInvalidTransactionBuilderRequest)
 		}
