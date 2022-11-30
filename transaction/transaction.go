@@ -13,18 +13,21 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-// PrepareTransaction prepares a transaction by filling the nonce, rcLimit, and payer, if they are not set
-func PrepareTransaction(ctrx context.Context, trx *protocol.Transaction, client *rpc.KoinosRPCClient) error {
-	if trx.Header.Payer == nil {
+// Transaction adds builder functions to protocol.Transaction
+type Transaction protocol.Transaction
+
+// Prepare prepares a transaction by filling the nonce, rcLimit, and payer, if they are not set
+func (t *Transaction) Prepare(ctx context.Context, client *rpc.KoinosRPCClient) error {
+	if t.Header.Payer == nil {
 		return fmt.Errorf("no transaction payer set")
 	}
 
-	if trx.Header.Nonce == nil || len(trx.Header.Nonce) == 0 {
+	if t.Header.Nonce == nil || len(t.Header.Nonce) == 0 {
 		if client == nil {
 			return fmt.Errorf("rpc client is nil")
 		}
 
-		nonceValue, err := client.GetAccountNonce(ctrx, trx.Header.Payer)
+		nonceValue, err := client.GetAccountNonce(ctx, t.Header.Payer)
 		if err != nil {
 			return err
 		}
@@ -34,43 +37,43 @@ func PrepareTransaction(ctrx context.Context, trx *protocol.Transaction, client 
 			return err
 		}
 
-		trx.Header.Nonce = nonce
+		t.Header.Nonce = nonce
 	}
 
-	if trx.Header.RcLimit == 0 {
+	if t.Header.RcLimit == 0 {
 		if client == nil {
 			return fmt.Errorf("rpc client is nil")
 		}
 
-		rcLimit, err := client.GetAccountRc(ctrx, trx.Header.Payer)
+		rcLimit, err := client.GetAccountRc(ctx, t.Header.Payer)
 		if err != nil {
 			return err
 		}
 
-		trx.Header.RcLimit = rcLimit
+		t.Header.RcLimit = rcLimit
 	}
 
-	if trx.Header.ChainId == nil || len(trx.Header.Nonce) == 0 {
+	if t.Header.ChainId == nil || len(t.Header.Nonce) == 0 {
 		if client == nil {
 			return fmt.Errorf("rpc client is nil")
 		}
 
-		chainId, err := client.GetChainID(ctrx)
+		chainId, err := client.GetChainID(ctx)
 		if err != nil {
 			return err
 		}
 
-		trx.Header.ChainId = chainId
+		t.Header.ChainId = chainId
 	}
 
 	// Fill out the transaction ID, if not set
-	if trx.Id == nil || len(trx.Id) == 0 {
-		if trx.Header.OperationMerkleRoot == nil || len(trx.Header.OperationMerkleRoot) == 0 {
+	if t.Id == nil || len(t.Id) == 0 {
+		if t.Header.OperationMerkleRoot == nil || len(t.Header.OperationMerkleRoot) == 0 {
 			// Get operation multihashes
-			opHashes := make([][]byte, len(trx.Operations))
+			opHashes := make([][]byte, len(t.Operations))
 			var err error
 
-			for i, op := range trx.Operations {
+			for i, op := range t.Operations {
 				opHashes[i], err = util.HashMessage(op)
 				if err != nil {
 					return err
@@ -83,10 +86,10 @@ func PrepareTransaction(ctrx context.Context, trx *protocol.Transaction, client 
 				return err
 			}
 
-			trx.Header.OperationMerkleRoot = merkleRoot
+			t.Header.OperationMerkleRoot = merkleRoot
 		}
 
-		headerBytes, err := canonical.Marshal(trx.Header)
+		headerBytes, err := canonical.Marshal(t.Header)
 		if err != nil {
 			return err
 		}
@@ -99,18 +102,18 @@ func PrepareTransaction(ctrx context.Context, trx *protocol.Transaction, client 
 			return err
 		}
 
-		trx.Id = tid
+		t.Id = tid
 	}
 
 	return nil
 }
 
-// SignTransaction signs the transaction with the given key
-func SignTransaction(trx *protocol.Transaction, key *util.KoinosKey) error {
+// Sign signs the transaction with the given key
+func (t *Transaction) Sign(key *util.KoinosKey) error {
 	privateKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), key.PrivateBytes())
 
 	// Decode the mutlihashed ID
-	idBytes, err := multihash.Decode(trx.Id)
+	idBytes, err := multihash.Decode(t.Id)
 	if err != nil {
 		return err
 	}
@@ -122,10 +125,10 @@ func SignTransaction(trx *protocol.Transaction, key *util.KoinosKey) error {
 	}
 
 	// Attach the signature data to the transaction
-	if trx.Signatures == nil {
-		trx.Signatures = [][]byte{signatureBytes}
+	if t.Signatures == nil {
+		t.Signatures = [][]byte{signatureBytes}
 	} else {
-		trx.Signatures = append(trx.Signatures, signatureBytes)
+		t.Signatures = append(t.Signatures, signatureBytes)
 	}
 
 	return nil
