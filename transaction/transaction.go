@@ -73,12 +73,9 @@ func (tb *TransactionBuilder) Build(ctx context.Context, signed bool) (*protocol
 
 	address := tb.key.AddressBytes()
 
-	// Fetch the nonce if it is not set
-	nonce, err := util.UInt64ToNonceBytes(*tb.nonceValue)
-	if err != nil {
-		return nil, err
-	}
-
+	// Fetch the nonce
+	var nonce []byte
+	var err error
 	if tb.nonceValue == nil {
 		if tb.rpcClient == nil {
 			return nil, fmt.Errorf("%w: no nonce given and no RPC client set", ErrInvalidTransactionBuilderRequest)
@@ -90,6 +87,11 @@ func (tb *TransactionBuilder) Build(ctx context.Context, signed bool) (*protocol
 		}
 
 		nonce, err = util.UInt64ToNonceBytes(nonceVal + 1)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		nonce, err = util.UInt64ToNonceBytes(*tb.nonceValue)
 		if err != nil {
 			return nil, err
 		}
