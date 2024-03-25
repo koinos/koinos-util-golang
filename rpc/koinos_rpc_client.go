@@ -13,7 +13,7 @@ import (
 	"github.com/koinos/koinos-proto-golang/v2/koinos/protocol"
 	"github.com/koinos/koinos-proto-golang/v2/koinos/rpc/chain"
 	contract_meta_store_rpc "github.com/koinos/koinos-proto-golang/v2/koinos/rpc/contract_meta_store"
-	util "github.com/koinos/koinos-util-golang"
+	util "github.com/koinos/koinos-util-golang/v2"
 	"github.com/multiformats/go-multihash"
 	jsonrpc "github.com/ybbus/jsonrpc/v3"
 	"google.golang.org/protobuf/proto"
