@@ -3,7 +3,7 @@ package util
 import (
 	"fmt"
 
-	"github.com/koinos/koinos-proto-golang/koinos/chain"
+	"github.com/koinos/koinos-proto-golang/v2/koinos/chain"
 	"google.golang.org/protobuf/proto"
 )
 

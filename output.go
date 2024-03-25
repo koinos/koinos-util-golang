@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/koinos/koinos-proto-golang/koinos"
-	"github.com/koinos/koinos-proto-golang/koinos/canonical"
-	"github.com/koinos/koinos-proto-golang/koinos/protocol"
+	"github.com/koinos/koinos-proto-golang/v2/koinos"
+	"github.com/koinos/koinos-proto-golang/v2/koinos/canonical"
+	"github.com/koinos/koinos-proto-golang/v2/koinos/protocol"
 	"github.com/multiformats/go-multihash"
 
 	"google.golang.org/protobuf/proto"
