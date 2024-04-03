@@ -6,7 +6,7 @@ require (
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/ethereum/go-ethereum v1.10.8
-	github.com/koinos/koinos-proto-golang/v2 v2.0.1
+	github.com/koinos/koinos-proto-golang/v2 v2.0.2
 	github.com/multiformats/go-multihash v0.1.0
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.8.1
