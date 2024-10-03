@@ -1,24 +1,31 @@
-language: go
+anguage: go
 
 go:
-  - 1.18.x
+  - 1.20.x
 
 addons:
   apt:
+    update: true
     packages:
-      - ruby-full
-  update: true
+      - ruby
 
 jobs:
   include:
-    - os: linux
-      dist: focal
+    - name: "Coverage"
+      os: linux
+      dist: jammy
+      install:
+        - sudo gem install coveralls-lcov
+        - go install github.com/jandelgado/gcov2lcov@latest
+        - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.61.0
+        - go get ./...
+      script:
+        - go build -ldflags="-X main.Commit=$(git rev-parse HEAD)" -o koinos-mq-golang *.go
+        - golangci-lint run ./...
+      after_success:
+        - coveralls-lcov --repo-token "$COVERALLS_REPO_TOKEN" --service-name travis-pro coverage.info
 
-install:
-  - source ci/install.sh
-
-script:
-  - ci/build.sh && ci/test.sh
-
-after_success:
-  - ci/after_success.sh
+notifications:
+  slack:
+    secure: JQRJMNw36sI/CTU0qCd/BIcwwllgL5yxsMR2R0vSS/7Oexq3C5QW/RGGQWUDuDFVvb79a6m4qDYp22sYWQ6RxBmykK5qaPkuUsnkjl0MNzDcVxh6jD0fIJumum2sJLt7tV9eyy0h416yKwZ2HZVIb2r2Q3cry7dWPtr5jrwN1Yd6Re8zr19kthibtlm20oex3cSR7nkI2DEpXzeOFcpfxKwgWD26DoofR038Zn2gkemNURicArwglPXFogh5KhZJGEreAb7CmOGmJqsNyKyDvgCGH7KqZPVvu9nLeUKHG6gJS3p2neWVrgQOQ/9Rb+twnsqUu76wS2D9HSpGbEcSsDs7W8xjdsp+ww/Eq2JPowJwjUYdw63M+NFmf1pQc675yRJoBOHir70YVl2Rowna752/KkjLUUaXQIGX8ELW2PWHoFqOrZJB6boxSgpuqVdjgdyB8+m3FxfERBN9LJ7GeROrvTz0cRQlVT6buvNMw8gJL8Dp4TZ8Y1VmmfXvRi44qLu2hMvXzs942zNo1BvmlnS6uAIGyU7kf3MnNCA0aQZ62j5OD7hOjnrAmOmlPGqoTxzNecdzvkyX4e7Y0pSmAofsPhNAMwwzZLXWBb4BOWJt7WWbJtS0Q6RJC/EwnW5WBv7HdhzUlAgpFo1P4m/4Z864SQGkc2bXOlRC67cy+B4=
+    on_success: never
