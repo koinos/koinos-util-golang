@@ -1,7 +1,6 @@
 package util
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -97,7 +96,7 @@ func InitYamlConfig(baseDir string) *YamlConfig {
 
 	yamlConfig := YamlConfig{}
 	if _, err := os.Stat(yamlConfigPath); err == nil {
-		data, err := ioutil.ReadFile(yamlConfigPath)
+		data, err := os.ReadFile(yamlConfigPath)
 		if err != nil {
 			panic(err)
 		}
