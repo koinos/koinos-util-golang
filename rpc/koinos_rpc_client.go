@@ -13,6 +13,7 @@ import (
 	"github.com/koinos/koinos-proto-golang/v2/koinos/protocol"
 	"github.com/koinos/koinos-proto-golang/v2/koinos/rpc/chain"
 	contract_meta_store_rpc "github.com/koinos/koinos-proto-golang/v2/koinos/rpc/contract_meta_store"
+	"github.com/koinos/koinos-proto-golang/v2/koinos/rpc/mempool"
 	util "github.com/koinos/koinos-util-golang/v2"
 	"github.com/multiformats/go-multihash"
 	jsonrpc "github.com/ybbus/jsonrpc/v3"
@@ -27,6 +28,7 @@ const (
 	SubmitTransactionCall = "chain.submit_transaction"
 	GetChainIDCall        = "chain.get_chain_id"
 	GetContractMetaCall   = "contract_meta_store.get_contract_meta"
+	GetPendingNonceCall   = "mempool.get_pending_nonce"
 )
 
 // SubmissionParams is the parameters for a transaction submission
@@ -173,6 +175,28 @@ func (c *KoinosRPCClient) GetAccountNonce(ctx context.Context, address []byte) (
 	}
 
 	nonce, err := util.NonceBytesToUInt64(cResp.Nonce)
+	if err != nil {
+		return 0, err
+	}
+
+	return nonce, nil
+}
+
+// GetPendingNonce gets the pending nonce of a given account
+func (c *KoinosRPCClient) GetPendingNonce(ctx context.Context, address []byte) (uint64, error) {
+	// Build the contract request
+	params := mempool.GetPendingNonceRequest{
+		Payee: address,
+	}
+
+	// Make the rpc call
+	var mResp mempool.GetPendingNonceResponse
+	err := c.Call(ctx, GetPendingNonceCall, &params, &mResp)
+	if err != nil {
+		return 0, err
+	}
+
+	nonce, err := util.NonceBytesToUInt64(mResp.Nonce)
 	if err != nil {
 		return 0, err
 	}
