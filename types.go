@@ -12,6 +12,10 @@ type Void struct{}
 
 // NonceBytesToUInt64 converts the given nonce bytes to a UInt64
 func NonceBytesToUInt64(nonceBytes []byte) (uint64, error) {
+	if len(nonceBytes) == 0 {
+		return 0, nil
+	}
+
 	// Extract the uint64 nonce from the response
 	var nonce chain.ValueType
 	if err := proto.Unmarshal(nonceBytes, &nonce); err != nil {
